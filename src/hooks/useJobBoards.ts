@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { searchJobBoards, JobBoard } from '@/lib/supabase';
+import { searchJobBoards, JobBoard } from '../lib/supabase';
 
 export const useJobBoards = (
   initialSearchTerm: string = '',
@@ -16,6 +16,22 @@ export const useJobBoards = (
   const [industries, setIndustries] = useState<string[]>(initialIndustries);
   const [experienceLevels, setExperienceLevels] = useState<string[]>(initialExperienceLevels);
   const [remoteOnly, setRemoteOnly] = useState<boolean>(initialRemoteOnly);
+
+  // Helper function to expand health-related terms
+  const expandIndustryTerms = (selectedIndustries: string[]): string[] => {
+    const expandedTerms: string[] = [];
+    
+    selectedIndustries.forEach(industry => {
+      if (industry === 'health') {
+        // Add all health-related terms
+        expandedTerms.push('health', 'healthcare', 'Health', 'medical', 'clinical', 'biotech', 'clinical research', 'hospital', 'pharmaceutical', 'pharma');
+      } else {
+        expandedTerms.push(industry);
+      }
+    });
+    
+    return expandedTerms;
+  };
 
   // Fetch all job boards initially
   useEffect(() => {
@@ -39,10 +55,47 @@ export const useJobBoards = (
 
   // Apply filters when filter state changes
   useEffect(() => {
-    const applyFilters = async () => {
+    const applyFilters = () => {
       try {
         setLoading(true);
-        const filtered = await searchJobBoards(searchTerm, industries, experienceLevels, remoteOnly);
+        
+        let filtered = [...jobBoards];
+        
+        // Apply search term filter
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          filtered = filtered.filter(board => 
+            board.name.toLowerCase().includes(term) || 
+            board.board_summary.toLowerCase().includes(term) ||
+            board.tags.some(tag => tag.toLowerCase().includes(term))
+          );
+        }
+        
+        // Apply industry filter with expanded terms
+        if (industries.length > 0) {
+          const expandedTerms = expandIndustryTerms(industries);
+          filtered = filtered.filter(board => 
+            board.industry.some(ind => 
+              expandedTerms.some(term => 
+                ind.toLowerCase().includes(term.toLowerCase()) ||
+                term.toLowerCase().includes(ind.toLowerCase())
+              )
+            )
+          );
+        }
+        
+        // Apply experience level filter
+        if (experienceLevels.length > 0) {
+          filtered = filtered.filter(board => 
+            board.experience_level.some(level => experienceLevels.includes(level))
+          );
+        }
+        
+        // Apply remote only filter
+        if (remoteOnly) {
+          filtered = filtered.filter(board => board.remote_friendly);
+        }
+        
         setFilteredBoards(filtered);
         setError(null);
       } catch (err) {
@@ -54,7 +107,7 @@ export const useJobBoards = (
     };
 
     applyFilters();
-  }, [searchTerm, industries, experienceLevels, remoteOnly]);
+  }, [searchTerm, industries, experienceLevels, remoteOnly, jobBoards]);
 
   const updateSearchTerm = (term: string) => {
     setSearchTerm(term);
