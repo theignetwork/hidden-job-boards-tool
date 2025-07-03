@@ -2,12 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getJobBoardById } from '@/lib/supabase';
+import { getJobBoardById, getJobBoards } from '@/lib/supabase';
 import { useFavorites } from '@/hooks/useFavorites';
 import Header from '@/components/Header';
 import BoardDetail from '@/components/BoardDetail';
 import Footer from '@/components/Footer';
 import type { JobBoard } from '@/lib/supabase';
+
+// This function tells Next.js which dynamic routes to pre-generate
+export async function generateStaticParams() {
+  try {
+    const boards = await getJobBoards();
+    return boards.map((board) => ({
+      id: board.id,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
+}
 
 export default function BoardDetailPage() {
   const params = useParams();
@@ -65,8 +78,6 @@ export default function BoardDetailPage() {
             <a 
               href="/"
               className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
-            >
-              Back to All Boards
             </a>
           </div>
         </div>
