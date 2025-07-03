@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { JobBoard } from '@/lib/supabase';
 import Header from '@/components/Header';
@@ -21,6 +21,14 @@ export default function HomePage() {
   // Get userId from URL parameter, fallback to test user ID matching MemberPress format
   const userId = searchParams.get('userId') || '999';
   
+  // Auto-switch to saved tab if URL has ?tab=saved
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'saved') {
+      setActiveTab('saved');
+    }
+  }, [searchParams]);
+  
   const {
     jobBoards,
     loading,
@@ -40,7 +48,7 @@ export default function HomePage() {
   const { favorites, toggleFavorite, isFavorite } = useFavorites(userId);
   
   // All available industries and experience levels for filters
-  const allIndustries = ['tech', 'climate', 'startups', 'Nonprofit', 'cleantech', 'blockchain', 'crypto'];
+  const allIndustries = ['tech', 'health', 'finance', 'education', 'nonprofit', 'government', 'climate', 'design', 'remote', 'startups'];
   const allExperienceLevels = ['Entry', 'Mid', 'Senior', 'Executive'];
   
   // Handle search button click
