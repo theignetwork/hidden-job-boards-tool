@@ -106,7 +106,7 @@ const BoardDetail: React.FC<BoardDetailProps> = ({
       
       <div className="flex justify-between">
         <Link 
-          href="/my-boards"
+          href="/?tab=saved"
           className="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
         >
           View My Boards
