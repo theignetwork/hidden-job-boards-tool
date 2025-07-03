@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { JobBoard } from '@/lib/supabase';
 import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
@@ -15,8 +16,10 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'saved'>('all');
   const [searchInput, setSearchInput] = useState('');
   
-  // For now, we'll use a hardcoded userId - we'll fix this later for WordPress integration
-  const userId = 'test-user-id';
+  const searchParams = useSearchParams();
+  
+  // Get userId from URL parameter, fallback to test user ID matching MemberPress format
+  const userId = searchParams.get('userId') || '999';
   
   const {
     jobBoards,
