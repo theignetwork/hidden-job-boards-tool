@@ -78,6 +78,8 @@ export default function BoardDetailPage() {
             <a 
               href="/"
               className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
+            >
+              Back to All Boards
             </a>
           </div>
         </div>
