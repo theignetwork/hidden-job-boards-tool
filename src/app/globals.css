@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 10, 14, 20;
+  --background-end-rgb: 5, 10, 15;
+  --accent-color: 0, 229, 255;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    )
+    fixed;
+  font-family: 'Inter', sans-serif;
+}
+
+.neon-glow {
+  text-shadow: 0 0 10px rgba(var(--accent-color), 0.7), 
+               0 0 20px rgba(var(--accent-color), 0.5);
+}
+
+.neon-box-shadow {
+  box-shadow: 0 0 10px rgba(var(--accent-color), 0.3);
+}
+
+.neon-border {
+  border: 1px solid rgba(var(--accent-color), 0.3);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(17, 25, 39);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(55, 65, 81);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(75, 85, 99);
+}
