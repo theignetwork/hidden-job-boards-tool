@@ -40,11 +40,11 @@ const Filters: React.FC<FilterProps> = ({
             multiple={false}
           >
             <option value="" disabled selected>Industry</option>
-            {industries.map((industry) => (
+            {industries && industries.map((industry) => (
               <option 
                 key={industry} 
                 value={industry}
-                selected={selectedIndustries.includes(industry)}
+                selected={selectedIndustries && selectedIndustries.includes(industry)}
               >
                 {industry}
               </option>
@@ -69,11 +69,11 @@ const Filters: React.FC<FilterProps> = ({
             multiple={false}
           >
             <option value="" disabled selected>Experience Level</option>
-            {experienceLevels.map((level) => (
+            {experienceLevels && experienceLevels.map((level) => (
               <option 
                 key={level} 
                 value={level}
-                selected={selectedExperienceLevels.includes(level)}
+                selected={selectedExperienceLevels && selectedExperienceLevels.includes(level)}
               >
                 {level}
               </option>
@@ -102,35 +102,35 @@ const Filters: React.FC<FilterProps> = ({
       
       <div className="flex flex-wrap gap-2">
         <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries.length === 0 && selectedExperienceLevels.length === 0 && !isRemoteOnly ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          className={`px-3 py-1 rounded-full text-sm ${(!selectedIndustries || selectedIndustries.length === 0) && (!selectedExperienceLevels || selectedExperienceLevels.length === 0) && !isRemoteOnly ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onClearFilters()}
         >
           All
         </button>
         
         <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries.includes('startups') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('startups') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('startups')}
         >
           startups
         </button>
         
         <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries.includes('Nonprofit') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('Nonprofit') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('Nonprofit')}
         >
           Nonprofit
         </button>
         
         <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries.includes('tech') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('tech') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('tech')}
         >
           tech
         </button>
         
         <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries.includes('climate') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('climate') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('climate')}
         >
           climate
@@ -142,7 +142,7 @@ const Filters: React.FC<FilterProps> = ({
           {boardsCount} Boards Found
         </div>
         
-        {(selectedIndustries.length > 0 || selectedExperienceLevels.length > 0 || isRemoteOnly) && (
+        {((selectedIndustries && selectedIndustries.length > 0) || (selectedExperienceLevels && selectedExperienceLevels.length > 0) || isRemoteOnly) && (
           <button 
             className="text-cyan-400 hover:text-cyan-300 transition-colors"
             onClick={onClearFilters}
