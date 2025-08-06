@@ -54,7 +54,8 @@ const BoardCard: React.FC<BoardCardProps> = ({
       <p className="text-gray-300 mb-4">{summary}</p>
       
       <div className="flex flex-wrap gap-2 mb-4">
-        {industries.map((industry) => (
+        {/* FIX: Add null check before calling .map() */}
+        {industries && industries.map((industry) => (
           <span key={industry} className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-full">
             {industry}
           </span>
