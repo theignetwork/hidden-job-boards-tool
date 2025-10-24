@@ -31,17 +31,43 @@ export const getJobBoards = async (): Promise<JobBoard[]> => {
   if (USE_MOCK_DATA) {
     return mockSupabaseClient.getJobBoards();
   }
-  
-  const { data, error } = await supabase
-    .from('hidden_job_boards')
-    .select('*');
-  
-  if (error) {
-    console.error('Error fetching job boards:', error);
-    return [];
+
+  // Supabase has a max-rows limit (usually 1000), so we need to paginate
+  // to get ALL boards
+  const pageSize = 1000;
+  let allBoards: JobBoard[] = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from('hidden_job_boards')
+      .select('*')
+      .range(from, to);
+
+    if (error) {
+      console.error(`Error fetching job boards (page ${page}):`, error);
+      break;
+    }
+
+    if (data && data.length > 0) {
+      allBoards = [...allBoards, ...data];
+
+      // If we got fewer rows than pageSize, we've reached the end
+      if (data.length < pageSize) {
+        hasMore = false;
+      } else {
+        page++;
+      }
+    } else {
+      hasMore = false;
+    }
   }
-  
-  return data || [];
+
+  return allBoards;
 };
 
 export const getUserFavorites = async (userId: string): Promise<string[]> => {
