@@ -46,6 +46,7 @@ export const getJobBoards = async (): Promise<JobBoard[]> => {
     const { data, error } = await supabase
       .from('hidden_job_boards')
       .select('*')
+      .eq('active', true)  // Only fetch active boards
       .range(from, to);
 
     if (error) {
@@ -179,6 +180,7 @@ export const getJobBoardById = async (id: string): Promise<JobBoard | null> => {
     .from('hidden_job_boards')
     .select('*')
     .eq('id', id)
+    .eq('active', true)  // Only return active boards
     .single();
   
   if (error) {
