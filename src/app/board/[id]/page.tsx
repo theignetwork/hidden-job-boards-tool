@@ -4,14 +4,30 @@ import type { JobBoard } from '@/lib/supabase';
 
 // This function tells Next.js which dynamic routes to pre-generate
 export async function generateStaticParams() {
+  console.log('🔍 Starting generateStaticParams...');
+
   try {
     const boards = await getJobBoards();
-    return boards.map((board) => ({
+
+    console.log(`✅ Successfully fetched ${boards.length} boards from Supabase`);
+
+    if (boards.length === 0) {
+      console.error('⚠️ WARNING: No boards fetched from Supabase!');
+      throw new Error('Build failed: No boards fetched from Supabase. Check environment variables.');
+    }
+
+    console.log(`📄 Generating ${boards.length} static board pages...`);
+
+    const params = boards.map((board) => ({
       id: board.id,
     }));
+
+    console.log(`✅ Generated params for ${params.length} board pages`);
+
+    return params;
   } catch (error) {
-    console.error('Error generating static params:', error);
-    return [];
+    console.error('❌ Error in generateStaticParams:', error);
+    throw error; // This will fail the build if something goes wrong
   }
 }
 
