@@ -72,32 +72,102 @@ CREATE OR REPLACE FUNCTION get_popular_searches(
     time_window INTERVAL DEFAULT '7 days'
 )
 RETURNS TABLE (
-    search_term TEXT,
+    search_query TEXT,
     search_count BIGINT,
     avg_results INT
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        event_data->>'search_term' as search_term,
+        event_data->>'search_query' as search_query,
         COUNT(*) as search_count,
         AVG((event_data->>'results_count')::INT)::INT as avg_results
     FROM user_activity_events
     WHERE
         event_type = 'search_performed'
         AND timestamp > NOW() - time_window
-        AND event_data->>'search_term' IS NOT NULL
-        AND event_data->>'search_term' != ''
-    GROUP BY event_data->>'search_term'
+        AND event_data->>'search_query' IS NOT NULL
+        AND event_data->>'search_query' != ''
+    GROUP BY event_data->>'search_query'
     ORDER BY search_count DESC
     LIMIT limit_count;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create a function to get user preferences (for RAG recommendations)
+CREATE OR REPLACE FUNCTION get_user_preferences(
+    p_user_id TEXT,
+    time_window INTERVAL DEFAULT '30 days'
+)
+RETURNS TABLE (
+    preferred_industries TEXT[],
+    preferred_experience_levels TEXT[],
+    prefers_remote BOOLEAN,
+    favorite_board_ids TEXT[],
+    viewed_board_ids TEXT[]
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        -- Aggregate industries from viewed boards
+        ARRAY_AGG(DISTINCT industry) FILTER (WHERE industry IS NOT NULL) as preferred_industries,
+        -- Aggregate experience levels from viewed boards
+        ARRAY_AGG(DISTINCT exp_level) FILTER (WHERE exp_level IS NOT NULL) as preferred_experience_levels,
+        -- Check if user views remote boards more often
+        (COUNT(*) FILTER (WHERE (event_data->>'remote_friendly')::BOOLEAN = true) >
+         COUNT(*) FILTER (WHERE (event_data->>'remote_friendly')::BOOLEAN = false)) as prefers_remote,
+        -- List of favorited board IDs
+        ARRAY_AGG(DISTINCT event_data->>'board_id') FILTER (WHERE event_type = 'board_favorited') as favorite_board_ids,
+        -- List of viewed board IDs
+        ARRAY_AGG(DISTINCT event_data->>'board_id') FILTER (WHERE event_type = 'board_viewed') as viewed_board_ids
+    FROM user_activity_events
+    CROSS JOIN LATERAL jsonb_array_elements_text(event_data->'industry') AS industry
+    CROSS JOIN LATERAL jsonb_array_elements_text(event_data->'experience_level') AS exp_level
+    WHERE
+        user_id = p_user_id
+        AND timestamp > NOW() - time_window
+        AND event_type IN ('board_viewed', 'board_favorited');
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a function to get popular filter combinations
+CREATE OR REPLACE FUNCTION get_popular_filter_combinations(
+    limit_count INT DEFAULT 10,
+    time_window INTERVAL DEFAULT '7 days'
+)
+RETURNS TABLE (
+    industries TEXT[],
+    experience_levels TEXT[],
+    remote_only BOOLEAN,
+    usage_count BIGINT,
+    avg_results INT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ARRAY(SELECT jsonb_array_elements_text(event_data->'filters_applied'->'industry')) as industries,
+        ARRAY(SELECT jsonb_array_elements_text(event_data->'filters_applied'->'experience')) as experience_levels,
+        (event_data->'filters_applied'->>'remote')::BOOLEAN as remote_only,
+        COUNT(*) as usage_count,
+        AVG((event_data->>'results_count')::INT)::INT as avg_results
+    FROM user_activity_events
+    WHERE
+        event_type = 'search_performed'
+        AND timestamp > NOW() - time_window
+        AND event_data->'filters_applied' IS NOT NULL
+    GROUP BY
+        event_data->'filters_applied'->'industry',
+        event_data->'filters_applied'->'experience',
+        event_data->'filters_applied'->>'remote'
+    ORDER BY usage_count DESC
+    LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Add comments for documentation
-COMMENT ON TABLE user_activity_events IS 'Tracks all user interactions for analytics and RAG integration';
-COMMENT ON COLUMN user_activity_events.event_type IS 'Type of event: board_viewed, board_favorited, search_performed, filter_applied, etc.';
-COMMENT ON COLUMN user_activity_events.event_data IS 'JSON data containing event-specific information (board details, search terms, filters, etc.)';
+COMMENT ON TABLE user_activity_events IS 'Tracks essential user interactions for analytics and RAG integration (simplified to 4 event types)';
+COMMENT ON COLUMN user_activity_events.event_type IS 'Type of event: board_viewed, board_favorited, board_unfavorited, search_performed';
+COMMENT ON COLUMN user_activity_events.event_data IS 'JSON data containing event-specific information (board details, search query, filters, etc.) - no browser context';
 COMMENT ON COLUMN user_activity_events.timestamp IS 'When the event occurred';
 
 -- Grant necessary permissions (adjust based on your RLS policies)
