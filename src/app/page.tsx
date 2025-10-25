@@ -66,8 +66,9 @@ export default function HomePage() {
   });
 
   // All available industries and experience levels for filters
-  const allIndustries = ['tech', 'health', 'finance', 'education', 'nonprofit', 'government', 'climate', 'design', 'remote', 'startups'];
-  const allExperienceLevels = ['Entry', 'Mid', 'Senior', 'Executive'];
+  // Note: These are lowercase keys that map to expanded terms in useJobBoards
+  const allIndustries = ['tech', 'health', 'finance', 'education', 'nonprofit', 'government', 'climate', 'design', 'remote', 'startups', 'marketing', 'engineering', 'media'];
+  const allExperienceLevels = ['entry', 'mid', 'senior', 'executive', 'internship'];
 
   // Update search term when debounced value changes
   useEffect(() => {
@@ -150,7 +151,6 @@ export default function HomePage() {
                     experienceLevels={board.experience_level}
                     boardType={board.board_type}
                     remoteFriendly={board.remote_friendly}
-                    featured={board.featured}
                     isFavorite={isFavorite(board.id)}
                     onToggleFavorite={toggleFavorite}
                     userId={userId}

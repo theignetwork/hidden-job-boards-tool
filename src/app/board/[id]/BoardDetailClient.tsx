@@ -31,7 +31,6 @@ export default function BoardDetailClient({ board }: BoardDetailClientProps) {
             industries={board.industry}
             remoteFriendly={board.remote_friendly}
             nonprofit={board.board_type.includes('Nonprofit')}
-            featured={board.featured}
             isFavorite={isFavorite(board.id)}
             onToggleFavorite={toggleFavorite}
           />

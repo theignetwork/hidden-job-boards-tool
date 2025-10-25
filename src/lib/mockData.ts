@@ -14,8 +14,7 @@ export const mockJobBoards: JobBoard[] = [
     usage_tips: 'Tailor your profile to tech startups and follow companies you\'re interested in to get invited to exclusive roles.',
     tags: ['tech', 'startups', 'venture-backed'],
     board_summary: 'A go-to job board for discovering opportunities at tech startups and emerging companies.',
-    created_at: '2025-01-01T00:00:00Z',
-    featured: true
+    created_at: '2025-01-01T00:00:00Z'
   },
   {
     id: '2',
@@ -28,8 +27,7 @@ export const mockJobBoards: JobBoard[] = [
     usage_tips: 'Tailor your profile to climate-focused skills and follow mission-aligned orgs to get invited to exclusive roles.',
     tags: ['climate', 'cleantech', 'sustainability'],
     board_summary: 'Showcase climate-focused skills for roles at mission-aligned organizations tackling global environmental challenges.',
-    created_at: '2025-01-02T00:00:00Z',
-    featured: true
+    created_at: '2025-01-02T00:00:00Z'
   },
   {
     id: '3',
@@ -42,8 +40,7 @@ export const mockJobBoards: JobBoard[] = [
     usage_tips: 'Highlight any blockchain experience or projects, even if they were personal or educational.',
     tags: ['crypto', 'blockchain', 'web3'],
     board_summary: 'A leading platform particularly helpful for job-specific positions in the crypto & blockchain sectors.',
-    created_at: '2025-01-03T00:00:00Z',
-    featured: false
+    created_at: '2025-01-03T00:00:00Z'
   }
 ];
 

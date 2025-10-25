@@ -25,6 +25,39 @@ const Filters: React.FC<FilterProps> = ({
   onClearFilters,
   boardsCount
 }) => {
+  // Helper to get display label for filter keys
+  const getDisplayLabel = (key: string, type: 'industry' | 'experience'): string => {
+    const industryLabels: Record<string, string> = {
+      tech: 'Technology',
+      health: 'Healthcare',
+      finance: 'Finance',
+      education: 'Education',
+      nonprofit: 'Nonprofit',
+      government: 'Government',
+      climate: 'Climate & Sustainability',
+      design: 'Design & UX',
+      remote: 'Remote Work',
+      startups: 'Startups',
+      marketing: 'Marketing',
+      engineering: 'Engineering',
+      media: 'Media & Entertainment'
+    };
+
+    const experienceLabels: Record<string, string> = {
+      entry: 'Entry Level',
+      mid: 'Mid Level',
+      senior: 'Senior Level',
+      executive: 'Executive',
+      internship: 'Internship'
+    };
+
+    if (type === 'industry') {
+      return industryLabels[key] || key;
+    } else {
+      return experienceLabels[key] || key;
+    }
+  };
+
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
@@ -41,12 +74,12 @@ const Filters: React.FC<FilterProps> = ({
           >
             <option value="" disabled selected>Industry</option>
             {industries && industries.map((industry) => (
-              <option 
-                key={industry} 
+              <option
+                key={industry}
                 value={industry}
                 selected={selectedIndustries && selectedIndustries.includes(industry)}
               >
-                {industry}
+                {getDisplayLabel(industry, 'industry')}
               </option>
             ))}
           </select>
@@ -70,12 +103,12 @@ const Filters: React.FC<FilterProps> = ({
           >
             <option value="" disabled selected>Experience Level</option>
             {experienceLevels && experienceLevels.map((level) => (
-              <option 
-                key={level} 
+              <option
+                key={level}
                 value={level}
                 selected={selectedExperienceLevels && selectedExperienceLevels.includes(level)}
               >
-                {level}
+                {getDisplayLabel(level, 'experience')}
               </option>
             ))}
           </select>
@@ -108,32 +141,39 @@ const Filters: React.FC<FilterProps> = ({
           All
         </button>
         
-        <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('startups') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
-          onClick={() => onIndustryChange('startups')}
-        >
-          startups
-        </button>
-        
-        <button 
-          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('Nonprofit') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
-          onClick={() => onIndustryChange('Nonprofit')}
-        >
-          Nonprofit
-        </button>
-        
-        <button 
+        <button
           className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('tech') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('tech')}
         >
-          tech
+          Technology
         </button>
-        
-        <button 
+
+        <button
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('health') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          onClick={() => onIndustryChange('health')}
+        >
+          Healthcare
+        </button>
+
+        <button
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('nonprofit') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          onClick={() => onIndustryChange('nonprofit')}
+        >
+          Nonprofit
+        </button>
+
+        <button
+          className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('startups') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+          onClick={() => onIndustryChange('startups')}
+        >
+          Startups
+        </button>
+
+        <button
           className={`px-3 py-1 rounded-full text-sm ${selectedIndustries && selectedIndustries.includes('climate') ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
           onClick={() => onIndustryChange('climate')}
         >
-          climate
+          Climate
         </button>
       </div>
       

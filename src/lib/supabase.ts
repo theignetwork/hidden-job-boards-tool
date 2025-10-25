@@ -15,7 +15,6 @@ export type JobBoard = {
   tags: string[];
   board_summary: string;
   created_at: string;
-  featured: boolean;
 };
 
 export type UserFavorite = {

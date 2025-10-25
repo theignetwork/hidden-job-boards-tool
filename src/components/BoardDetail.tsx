@@ -10,7 +10,6 @@ interface BoardDetailProps {
   industries: string[];
   remoteFriendly: boolean;
   nonprofit: boolean;
-  featured: boolean;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
 }
@@ -24,7 +23,6 @@ const BoardDetail: React.FC<BoardDetailProps> = ({
   industries,
   remoteFriendly,
   nonprofit,
-  featured,
   isFavorite,
   onToggleFavorite
 }) => {
