@@ -4,17 +4,13 @@ import { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } from './env';
 const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 /**
- * Event types for analytics tracking
+ * Event types for analytics tracking (simplified for RAG integration)
  */
 export type AnalyticsEventType =
   | 'board_viewed'
   | 'board_favorited'
   | 'board_unfavorited'
-  | 'search_performed'
-  | 'filter_applied'
-  | 'filter_cleared'
-  | 'page_loaded'
-  | 'tab_changed';
+  | 'search_performed';
 
 /**
  * Analytics event data structure
@@ -29,7 +25,7 @@ export interface AnalyticsEvent {
 /**
  * Track an analytics event to Supabase
  * @param eventType - Type of event being tracked
- * @param eventData - Additional context about the event
+ * @param eventData - Essential context about the event
  * @param userId - Optional user ID
  */
 export async function trackEvent(
@@ -38,20 +34,10 @@ export async function trackEvent(
   userId?: string
 ): Promise<void> {
   try {
-    // Add browser/session context
-    const enrichedData = {
-      ...eventData,
-      user_agent: typeof window !== 'undefined' ? navigator.userAgent : null,
-      screen_width: typeof window !== 'undefined' ? window.screen.width : null,
-      screen_height: typeof window !== 'undefined' ? window.screen.height : null,
-      referrer: typeof document !== 'undefined' ? document.referrer : null,
-      url: typeof window !== 'undefined' ? window.location.href : null
-    };
-
     const { error } = await supabase.from('user_activity_events').insert({
       event_type: eventType,
       user_id: userId || null,
-      event_data: enrichedData,
+      event_data: eventData,
       timestamp: new Date().toISOString()
     });
 
@@ -67,10 +53,20 @@ export async function trackEvent(
 /**
  * Track board view event
  */
-export function trackBoardView(boardId: string, boardName: string, userId?: string) {
+export function trackBoardView(
+  boardId: string,
+  boardName: string,
+  industry: string[],
+  experienceLevel: string[],
+  remoteFriendly: boolean,
+  userId?: string
+) {
   trackEvent('board_viewed', {
     board_id: boardId,
-    board_name: boardName
+    board_name: boardName,
+    industry,
+    experience_level: experienceLevel,
+    remote_friendly: remoteFriendly
   }, userId);
 }
 
@@ -94,62 +90,25 @@ export function trackFavoriteToggle(
 }
 
 /**
- * Track search performed
+ * Track search performed (includes filters applied)
  */
 export function trackSearch(
-  searchTerm: string,
-  resultsCount: number,
-  userId?: string
-) {
-  trackEvent('search_performed', {
-    search_term: searchTerm,
-    results_count: resultsCount
-  }, userId);
-}
-
-/**
- * Track filter applied
- */
-export function trackFilterApplied(
-  filters: {
-    industries?: string[];
-    experienceLevels?: string[];
-    remoteOnly?: boolean;
+  searchQuery: string,
+  filtersApplied: {
+    industries: string[];
+    experienceLevels: string[];
+    remoteOnly: boolean;
   },
   resultsCount: number,
   userId?: string
 ) {
-  trackEvent('filter_applied', {
-    industries: filters.industries || [],
-    experience_levels: filters.experienceLevels || [],
-    remote_only: filters.remoteOnly || false,
+  trackEvent('search_performed', {
+    search_query: searchQuery,
+    filters_applied: {
+      industry: filtersApplied.industries,
+      experience: filtersApplied.experienceLevels,
+      remote: filtersApplied.remoteOnly
+    },
     results_count: resultsCount
-  }, userId);
-}
-
-/**
- * Track filter cleared
- */
-export function trackFilterCleared(userId?: string) {
-  trackEvent('filter_cleared', {}, userId);
-}
-
-/**
- * Track page load
- */
-export function trackPageLoad(userId?: string) {
-  trackEvent('page_loaded', {
-    load_time: typeof window !== 'undefined'
-      ? window.performance.timing.loadEventEnd - window.performance.timing.navigationStart
-      : null
-  }, userId);
-}
-
-/**
- * Track tab change
- */
-export function trackTabChange(tab: 'all' | 'saved', userId?: string) {
-  trackEvent('tab_changed', {
-    tab
   }, userId);
 }

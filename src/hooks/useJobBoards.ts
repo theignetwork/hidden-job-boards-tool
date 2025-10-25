@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { searchJobBoards, JobBoard } from '../lib/supabase';
-import { trackSearch, trackFilterApplied, trackFilterCleared } from '../lib/analytics';
+import { trackSearch } from '../lib/analytics';
 
 const PAGE_SIZE = 50; // Load 50 boards at a time
 
@@ -74,11 +74,6 @@ export const useJobBoards = (
             board.board_summary.toLowerCase().includes(term) ||
             board.tags.some(tag => tag.toLowerCase().includes(term))
           );
-
-          // Track search event
-          if (searchTerm.length >= 3) {
-            trackSearch(searchTerm, filtered.length, userId);
-          }
         }
 
         // Apply industry filter with expanded terms
@@ -106,13 +101,18 @@ export const useJobBoards = (
           filtered = filtered.filter(board => board.remote_friendly);
         }
 
-        // Track filter application if any filters are active
-        if (industries.length > 0 || experienceLevels.length > 0 || remoteOnly) {
-          trackFilterApplied({
-            industries,
-            experienceLevels,
-            remoteOnly
-          }, filtered.length, userId);
+        // Track search event (includes filters)
+        if (searchTerm && searchTerm.length >= 3) {
+          trackSearch(
+            searchTerm,
+            {
+              industries,
+              experienceLevels,
+              remoteOnly
+            },
+            filtered.length,
+            userId
+          );
         }
 
         setFilteredBoards(filtered);
@@ -182,7 +182,6 @@ export const useJobBoards = (
     setIndustries([]);
     setExperienceLevels([]);
     setRemoteOnly(false);
-    trackFilterCleared(userId);
   };
 
   return {

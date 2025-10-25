@@ -30,7 +30,7 @@ const BoardCard: React.FC<BoardCardProps> = ({
   userId
 }) => {
   const handleBoardClick = () => {
-    trackBoardView(id, name, userId);
+    trackBoardView(id, name, industries, experienceLevels, remoteFriendly, userId);
   };
 
   const handleFavoriteClick = () => {

@@ -14,7 +14,6 @@ import { useJobBoards } from '@/hooks/useJobBoards';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import { trackPageLoad, trackTabChange } from '@/lib/analytics';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'saved'>('all');
@@ -27,11 +26,6 @@ export default function HomePage() {
 
   // Debounce search input to prevent excessive re-renders
   const debouncedSearch = useDebounce(searchInput, 300);
-
-  // Track page load on mount
-  useEffect(() => {
-    trackPageLoad(userId);
-  }, [userId]);
 
   // Auto-switch to saved tab if URL has ?tab=saved
   useEffect(() => {
@@ -85,12 +79,6 @@ export default function HomePage() {
     updateSearchTerm(searchInput);
   };
 
-  // Handle tab change with analytics
-  const handleTabChange = (tab: 'all' | 'saved') => {
-    setActiveTab(tab);
-    trackTabChange(tab, userId);
-  };
-
   // Filter boards based on active tab
   const displayedBoards = activeTab === 'all'
     ? jobBoards
@@ -125,7 +113,7 @@ export default function HomePage() {
             />
           </div>
           
-          <Tabs activeTab={activeTab} onTabChange={handleTabChange} />
+          <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {loading ? (
             <BoardCardSkeletonGrid count={12} />
