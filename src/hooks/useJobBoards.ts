@@ -1,17 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { searchJobBoards, JobBoard } from '../lib/supabase';
+import { trackSearch, trackFilterApplied, trackFilterCleared } from '../lib/analytics';
+
+const PAGE_SIZE = 50; // Load 50 boards at a time
 
 export const useJobBoards = (
   initialSearchTerm: string = '',
   initialIndustries: string[] = [],
   initialExperienceLevels: string[] = [],
-  initialRemoteOnly: boolean = false
+  initialRemoteOnly: boolean = false,
+  userId?: string
 ) => {
-  const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
+  const [allBoards, setAllBoards] = useState<JobBoard[]>([]);
+  const [displayedBoards, setDisplayedBoards] = useState<JobBoard[]>([]);
   const [filteredBoards, setFilteredBoards] = useState<JobBoard[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+
   const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm);
   const [industries, setIndustries] = useState<string[]>(initialIndustries);
   const [experienceLevels, setExperienceLevels] = useState<string[]>(initialExperienceLevels);
@@ -20,7 +28,7 @@ export const useJobBoards = (
   // Helper function to expand health-related terms
   const expandIndustryTerms = (selectedIndustries: string[]): string[] => {
     const expandedTerms: string[] = [];
-    
+
     selectedIndustries.forEach(industry => {
       if (industry === 'health') {
         // Add all health-related terms
@@ -29,18 +37,17 @@ export const useJobBoards = (
         expandedTerms.push(industry);
       }
     });
-    
+
     return expandedTerms;
   };
 
-  // Fetch all job boards initially
+  // Fetch all job boards initially (for filtering)
   useEffect(() => {
-    const fetchJobBoards = async () => {
+    const fetchAllBoards = async () => {
       try {
         setLoading(true);
         const boards = await searchJobBoards();
-        setJobBoards(boards);
-        setFilteredBoards(boards);
+        setAllBoards(boards);
         setError(null);
       } catch (err) {
         console.error('Error fetching job boards:', err);
@@ -50,64 +57,101 @@ export const useJobBoards = (
       }
     };
 
-    fetchJobBoards();
+    fetchAllBoards();
   }, []);
 
-  // Apply filters when filter state changes
+  // Apply filters and pagination
   useEffect(() => {
     const applyFilters = () => {
       try {
-        setLoading(true);
-        
-        let filtered = [...jobBoards];
-        
+        let filtered = [...allBoards];
+
         // Apply search term filter
         if (searchTerm) {
           const term = searchTerm.toLowerCase();
-          filtered = filtered.filter(board => 
-            board.name.toLowerCase().includes(term) || 
+          filtered = filtered.filter(board =>
+            board.name.toLowerCase().includes(term) ||
             board.board_summary.toLowerCase().includes(term) ||
             board.tags.some(tag => tag.toLowerCase().includes(term))
           );
+
+          // Track search event
+          if (searchTerm.length >= 3) {
+            trackSearch(searchTerm, filtered.length, userId);
+          }
         }
-        
+
         // Apply industry filter with expanded terms
         if (industries.length > 0) {
           const expandedTerms = expandIndustryTerms(industries);
-          filtered = filtered.filter(board => 
-            board.industry.some(ind => 
-              expandedTerms.some(term => 
+          filtered = filtered.filter(board =>
+            board.industry.some(ind =>
+              expandedTerms.some(term =>
                 ind.toLowerCase().includes(term.toLowerCase()) ||
                 term.toLowerCase().includes(ind.toLowerCase())
               )
             )
           );
         }
-        
+
         // Apply experience level filter
         if (experienceLevels.length > 0) {
-          filtered = filtered.filter(board => 
+          filtered = filtered.filter(board =>
             board.experience_level.some(level => experienceLevels.includes(level))
           );
         }
-        
+
         // Apply remote only filter
         if (remoteOnly) {
           filtered = filtered.filter(board => board.remote_friendly);
         }
-        
+
+        // Track filter application if any filters are active
+        if (industries.length > 0 || experienceLevels.length > 0 || remoteOnly) {
+          trackFilterApplied({
+            industries,
+            experienceLevels,
+            remoteOnly
+          }, filtered.length, userId);
+        }
+
         setFilteredBoards(filtered);
+
+        // Reset pagination when filters change
+        setPage(1);
+        setHasMore(filtered.length > PAGE_SIZE);
+
         setError(null);
       } catch (err) {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters');
-      } finally {
-        setLoading(false);
       }
     };
 
-    applyFilters();
-  }, [searchTerm, industries, experienceLevels, remoteOnly, jobBoards]);
+    if (allBoards.length > 0) {
+      applyFilters();
+    }
+  }, [searchTerm, industries, experienceLevels, remoteOnly, allBoards, userId]);
+
+  // Update displayed boards based on current page
+  useEffect(() => {
+    const startIndex = 0;
+    const endIndex = page * PAGE_SIZE;
+    setDisplayedBoards(filteredBoards.slice(startIndex, endIndex));
+    setHasMore(endIndex < filteredBoards.length);
+  }, [page, filteredBoards]);
+
+  // Load more boards (for infinite scroll)
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true);
+      // Simulate async load for smooth UX
+      setTimeout(() => {
+        setPage(prev => prev + 1);
+        setLoadingMore(false);
+      }, 100);
+    }
+  }, [loadingMore, hasMore]);
 
   const updateSearchTerm = (term: string) => {
     setSearchTerm(term);
@@ -138,11 +182,13 @@ export const useJobBoards = (
     setIndustries([]);
     setExperienceLevels([]);
     setRemoteOnly(false);
+    trackFilterCleared(userId);
   };
 
   return {
-    jobBoards: filteredBoards,
+    jobBoards: displayedBoards,
     loading,
+    loadingMore,
     error,
     searchTerm,
     industries,
@@ -153,6 +199,9 @@ export const useJobBoards = (
     toggleExperienceLevel,
     toggleRemoteOnly,
     clearFilters,
-    boardsCount: filteredBoards.length
+    boardsCount: filteredBoards.length,
+    totalBoards: allBoards.length,
+    loadMore,
+    hasMore
   };
 };

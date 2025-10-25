@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { trackBoardView, trackFavoriteToggle } from '@/lib/analytics';
 
 interface BoardCardProps {
   id: string;
@@ -12,6 +13,7 @@ interface BoardCardProps {
   featured: boolean;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  userId?: string;
 }
 
 const BoardCard: React.FC<BoardCardProps> = ({
@@ -24,18 +26,28 @@ const BoardCard: React.FC<BoardCardProps> = ({
   remoteFriendly,
   featured,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
+  userId
 }) => {
+  const handleBoardClick = () => {
+    trackBoardView(id, name, userId);
+  };
+
+  const handleFavoriteClick = () => {
+    const willBeFavorite = !isFavorite;
+    trackFavoriteToggle(id, name, willBeFavorite, userId);
+    onToggleFavorite(id);
+  };
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 transition-all hover:border-gray-700 hover:shadow-lg hover:shadow-cyan-900/20">
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-xl font-bold text-cyan-400 hover:text-cyan-300 transition-colors">
-          <Link href={`/board/${id}`}>
+          <Link href={`/board/${id}`} onClick={handleBoardClick}>
             {name}
           </Link>
         </h3>
         <button
-          onClick={() => onToggleFavorite(id)}
+          onClick={handleFavoriteClick}
           className="text-gray-400 hover:text-cyan-400 transition-colors"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
@@ -80,8 +92,9 @@ const BoardCard: React.FC<BoardCardProps> = ({
         )}
       </div>
       
-      <Link 
+      <Link
         href={`/board/${id}`}
+        onClick={handleBoardClick}
         className="inline-block px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
       >
         View
