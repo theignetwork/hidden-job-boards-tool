@@ -14,15 +14,17 @@ import { useJobBoards } from '@/hooks/useJobBoards';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function HomePage() {
+  const { wpUserId, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'saved'>('all');
   const [searchInput, setSearchInput] = useState('');
 
   const searchParams = useSearchParams();
 
-  // Get userId from URL parameter, fallback to test user ID matching MemberPress format
-  const userId = searchParams.get('userId') || '999';
+  // Use verified WordPress user ID
+  const userId = wpUserId ? String(wpUserId) : null;
 
   // Debounce search input to prevent excessive re-renders
   const debouncedSearch = useDebounce(searchInput, 300);
@@ -85,6 +87,15 @@ export default function HomePage() {
     ? jobBoards
     : jobBoards.filter(board => favorites.includes(board.id));
   
+  // Show authenticating state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <div className="text-gray-400">Authenticating...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="container mx-auto px-4 py-8">

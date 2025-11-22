@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 import BoardDetail from '@/components/BoardDetail';
 import Footer from '@/components/Footer';
@@ -12,9 +13,20 @@ interface BoardDetailClientProps {
 }
 
 export default function BoardDetailClient({ board }: BoardDetailClientProps) {
-  // For now, use hardcoded userId - we'll fix this later for WordPress integration
-  const userId = 'test-user-id';
+  const { wpUserId, loading: authLoading } = useAuth();
+  
+  // Use verified WordPress user ID
+  const userId = wpUserId ? String(wpUserId) : null;
   const { favorites, toggleFavorite, isFavorite } = useFavorites(userId);
+
+  // Show authenticating state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <div className="text-gray-400">Authenticating...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">

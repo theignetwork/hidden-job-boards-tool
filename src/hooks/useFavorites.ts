@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getUserFavorites, addFavorite, removeFavorite } from '@/lib/supabase';
 
-export const useFavorites = (userId: string) => {
+export const useFavorites = (userId: string | null) => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -10,8 +10,15 @@ export const useFavorites = (userId: string) => {
     const fetchFavorites = async () => {
       try {
         setLoading(true);
-        const userFavorites = await getUserFavorites(userId);
-        setFavorites(userFavorites);
+        
+        // Only fetch if we have a valid user ID
+        if (userId) {
+          const userFavorites = await getUserFavorites(userId);
+          setFavorites(userFavorites);
+        } else {
+          setFavorites([]);
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching favorites:', err);
@@ -21,15 +28,16 @@ export const useFavorites = (userId: string) => {
       }
     };
 
-    if (userId) {
-      fetchFavorites();
-    } else {
-      setFavorites([]);
-      setLoading(false);
-    }
+    fetchFavorites();
   }, [userId]);
 
   const toggleFavorite = async (boardId: string) => {
+    // Don't allow favoriting without a user ID
+    if (!userId) {
+      console.warn('Cannot toggle favorite without user ID');
+      return;
+    }
+    
     try {
       const isFavorite = favorites.includes(boardId);
       

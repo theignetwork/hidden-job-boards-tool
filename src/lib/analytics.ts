@@ -31,7 +31,7 @@ export interface AnalyticsEvent {
 export async function trackEvent(
   eventType: AnalyticsEventType,
   eventData: Record<string, any> = {},
-  userId?: string
+  userId?: string | null
 ): Promise<void> {
   try {
     const { error } = await supabase.from('user_activity_events').insert({
@@ -59,7 +59,7 @@ export function trackBoardView(
   industry: string[],
   experienceLevel: string[],
   remoteFriendly: boolean,
-  userId?: string
+  userId?: string | null
 ) {
   trackEvent('board_viewed', {
     board_id: boardId,
@@ -77,7 +77,7 @@ export function trackFavoriteToggle(
   boardId: string,
   boardName: string,
   isFavorite: boolean,
-  userId?: string
+  userId?: string | null
 ) {
   trackEvent(
     isFavorite ? 'board_favorited' : 'board_unfavorited',
@@ -100,7 +100,7 @@ export function trackSearch(
     remoteOnly: boolean;
   },
   resultsCount: number,
-  userId?: string
+  userId?: string | null
 ) {
   trackEvent('search_performed', {
     search_query: searchQuery,

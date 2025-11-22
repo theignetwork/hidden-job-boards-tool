@@ -1,5 +1,5 @@
 import React from 'react';
-import AppWrapper from '@/components/AppWrapper';
+import ClientLayout from '@/components/ClientLayout';
 import './globals.css';
 
 export default function RootLayout({
@@ -17,9 +17,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <AppWrapper>
+        <ClientLayout>
           {children}
-        </AppWrapper>
+        </ClientLayout>
       </body>
     </html>
   );

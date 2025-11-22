@@ -9,7 +9,7 @@ export const useJobBoards = (
   initialIndustries: string[] = [],
   initialExperienceLevels: string[] = [],
   initialRemoteOnly: boolean = false,
-  userId?: string
+  userId?: string | null
 ) => {
   const [allBoards, setAllBoards] = useState<JobBoard[]>([]);
   const [displayedBoards, setDisplayedBoards] = useState<JobBoard[]>([]);

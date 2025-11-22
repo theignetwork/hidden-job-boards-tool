@@ -12,7 +12,7 @@ interface BoardCardProps {
   remoteFriendly: boolean;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
-  userId?: string;
+  userId?: string | null;
 }
 
 const BoardCard: React.FC<BoardCardProps> = ({
