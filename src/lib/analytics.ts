@@ -1,57 +1,37 @@
-import { createClient } from '@supabase/supabase-js';
-import { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } from './env';
-
-const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
 /**
- * Event types for analytics tracking (simplified for RAG integration)
+ * Analytics tracking - DISABLED
+ *
+ * All analytics functions are no-ops to avoid Supabase 404 errors.
+ * Enable by creating user_activity_events table in Supabase.
  */
+
 export type AnalyticsEventType =
   | 'board_viewed'
   | 'board_favorited'
   | 'board_unfavorited'
   | 'search_performed';
 
-/**
- * Analytics event data structure
- */
 export interface AnalyticsEvent {
   event_type: AnalyticsEventType;
-  user_id?: string;
+  user_id?: string | null;
   event_data: Record<string, any>;
   timestamp?: string;
 }
 
 /**
- * Track an analytics event to Supabase
- * @param eventType - Type of event being tracked
- * @param eventData - Essential context about the event
- * @param userId - Optional user ID
+ * Track an analytics event (DISABLED - no-op)
  */
 export async function trackEvent(
   eventType: AnalyticsEventType,
   eventData: Record<string, any> = {},
   userId?: string | null
 ): Promise<void> {
-  try {
-    const { error } = await supabase.from('user_activity_events').insert({
-      event_type: eventType,
-      user_id: userId || null,
-      event_data: eventData,
-      timestamp: new Date().toISOString()
-    });
-
-    if (error) {
-      console.error('Analytics tracking error:', error);
-    }
-  } catch (error) {
-    // Fail silently - analytics should never break the app
-    console.error('Failed to track event:', error);
-  }
+  // Analytics disabled - no-op
+  return;
 }
 
 /**
- * Track board view event
+ * Track board view event (DISABLED - no-op)
  */
 export function trackBoardView(
   boardId: string,
@@ -61,17 +41,12 @@ export function trackBoardView(
   remoteFriendly: boolean,
   userId?: string | null
 ) {
-  trackEvent('board_viewed', {
-    board_id: boardId,
-    board_name: boardName,
-    industry,
-    experience_level: experienceLevel,
-    remote_friendly: remoteFriendly
-  }, userId);
+  // Analytics disabled - no-op
+  return;
 }
 
 /**
- * Track favorite toggle event
+ * Track favorite toggle event (DISABLED - no-op)
  */
 export function trackFavoriteToggle(
   boardId: string,
@@ -79,18 +54,12 @@ export function trackFavoriteToggle(
   isFavorite: boolean,
   userId?: string | null
 ) {
-  trackEvent(
-    isFavorite ? 'board_favorited' : 'board_unfavorited',
-    {
-      board_id: boardId,
-      board_name: boardName
-    },
-    userId
-  );
+  // Analytics disabled - no-op
+  return;
 }
 
 /**
- * Track search performed (includes filters applied)
+ * Track search performed (DISABLED - no-op)
  */
 export function trackSearch(
   searchQuery: string,
@@ -102,13 +71,6 @@ export function trackSearch(
   resultsCount: number,
   userId?: string | null
 ) {
-  trackEvent('search_performed', {
-    search_query: searchQuery,
-    filters_applied: {
-      industry: filtersApplied.industries,
-      experience: filtersApplied.experienceLevels,
-      remote: filtersApplied.remoteOnly
-    },
-    results_count: resultsCount
-  }, userId);
+  // Analytics disabled - no-op
+  return;
 }
