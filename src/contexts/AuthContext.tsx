@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const oldUserId = sessionStorage.getItem('wp_user_id');
 
           // Verify token with server (server has the secret, not client!)
-          const response = await fetch('/api/auth/verify', {
+          const response = await fetch('/.netlify/functions/verify-jwt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token })
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('[Auth] No token in URL, but found stored token - re-verifying...');
 
             // RE-VERIFY the stored token to prevent user ID bleeding
-            const response = await fetch('/api/auth/verify', {
+            const response = await fetch('/.netlify/functions/verify-jwt', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ token: storedToken })
